@@ -1,0 +1,11 @@
+[Unit]
+Description=Allo RelayAttenuator ALSA Bridge
+After=sound.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/relay-volume-daemon.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
