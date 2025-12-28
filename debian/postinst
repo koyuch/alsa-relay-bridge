@@ -13,7 +13,8 @@ check_i2c() {
     if [ ! -e /dev/i2c-1 ]; then
         echo "WARNING: I2C interface /dev/i2c-1 not found!"
         echo "Please enable I2C using 'sudo raspi-config' -> Interface Options -> I2C"
-        return 1
+        echo "The service may fail to start until I2C is enabled."
+        return 0  # Don't fail installation, just warn
     fi
     echo "✓ I2C interface detected"
     return 0
@@ -22,35 +23,40 @@ check_i2c() {
 # Function to detect Allo RelayAttenuator hardware
 check_relay_hardware() {
     if command -v i2cdetect >/dev/null 2>&1; then
-        echo "Checking for Allo RelayAttenuator at address ${RELAY_ADDR}..."
-        if i2cdetect -y 1 | grep -q "21"; then
-            echo "✓ Allo RelayAttenuator detected at address ${RELAY_ADDR}"
-            return 0
+        if [ -e /dev/i2c-1 ]; then
+            echo "Checking for Allo RelayAttenuator at address ${RELAY_ADDR}..."
+            if i2cdetect -y 1 2>/dev/null | grep -q "21"; then
+                echo "✓ Allo RelayAttenuator detected at address ${RELAY_ADDR}"
+                return 0
+            else
+                echo "WARNING: Allo RelayAttenuator not detected at address ${RELAY_ADDR}"
+                echo "Please verify hardware connection and I2C configuration"
+                return 0  # Don't fail installation, just warn
+            fi
         else
-            echo "WARNING: Allo RelayAttenuator not detected at address ${RELAY_ADDR}"
-            echo "Please verify hardware connection and I2C configuration"
-            return 1
+            echo "WARNING: I2C not available, skipping RelayAttenuator detection"
+            return 0
         fi
     else
         echo "WARNING: i2cdetect not available, skipping hardware detection"
-        return 1
+        return 0
     fi
 }
 
 # Function to check for BossDAC
 check_bossdac() {
     if command -v aplay >/dev/null 2>&1; then
-        if aplay -l | grep -q "BossDAC"; then
+        if aplay -l 2>/dev/null | grep -q "BossDAC"; then
             echo "✓ Allo BossDAC detected"
             return 0
         else
             echo "WARNING: Allo BossDAC not detected in ALSA devices"
             echo "Please verify BossDAC is properly configured"
-            return 1
+            return 0  # Don't fail installation, just warn
         fi
     else
         echo "WARNING: aplay not available, skipping BossDAC detection"
-        return 1
+        return 0
     fi
 }
 
