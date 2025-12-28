@@ -88,6 +88,22 @@ configure_alsa() {
             cat "$ASOUND_SOURCE"
         } >> "$ASOUND_CONF"
         echo "✓ ALSA configuration added"
+        echo "NOTE: ALSA configuration changes require a reboot or ALSA restart to take effect"
+    fi
+}
+
+# Function to reload ALSA configuration
+reload_alsa() {
+    echo "Attempting to reload ALSA configuration..."
+    # Try to reload ALSA without reboot
+    if command -v alsactl >/dev/null 2>&1; then
+        alsactl kill rescan 2>/dev/null || true
+        alsactl nrestore 2>/dev/null || true
+        echo "✓ ALSA configuration reloaded"
+        return 0
+    else
+        echo "⚠ alsactl not available, ALSA reload skipped"
+        return 1
     fi
 }
 
@@ -111,6 +127,9 @@ echo ""
 echo "ALSA Configuration:"
 configure_alsa
 
+# Try to reload ALSA configuration
+reload_alsa
+
 # Reload systemd daemon
 echo ""
 echo "Configuring systemd service..."
@@ -124,26 +143,58 @@ else
     exit 1
 fi
 
-if systemctl start alsa-relay-volume.service; then
-    echo "✓ Service started"
+# Only start service if I2C is available
+if [ -e /dev/i2c-1 ]; then
+    if systemctl start alsa-relay-volume.service; then
+        echo "✓ Service started"
+    else
+        echo "WARNING: Service failed to start"
+        echo "Check logs with: journalctl -u alsa-relay-volume.service -n 50"
+    fi
+    
+    # Show service status
+    echo ""
+    echo "Service Status:"
+    systemctl status alsa-relay-volume.service --no-pager || true
 else
-    echo "WARNING: Service failed to start"
-    echo "Check logs with: journalctl -u alsa-relay-volume.service -n 50"
+    echo "⚠ Service enabled but not started (I2C not available)"
+    echo "After enabling I2C, start the service with:"
+    echo "  sudo systemctl start alsa-relay-volume.service"
 fi
-
-# Show service status
-echo ""
-echo "Service Status:"
-systemctl status alsa-relay-volume.service --no-pager || true
 
 echo ""
 echo "=== Installation Complete ==="
 echo ""
-echo "To check service status: systemctl status alsa-relay-volume.service"
-echo "To view logs: journalctl -u alsa-relay-volume.service -f"
+
+# Check if service is actually running
+if systemctl is-active --quiet alsa-relay-volume.service; then
+    echo "✓ Service is running successfully"
+else
+    echo "⚠ Service is not running. This may be normal if:"
+    echo "  - I2C is not enabled (enable with: sudo raspi-config)"
+    echo "  - ALSA configuration needs a reboot to take effect"
+    echo "  - Hardware is not connected"
+    echo ""
+    echo "After addressing the above, start the service with:"
+    echo "  sudo systemctl start alsa-relay-volume.service"
+fi
+
 echo ""
+echo "Useful commands:"
+echo "  Check service status: systemctl status alsa-relay-volume.service"
+echo "  View logs: journalctl -u alsa-relay-volume.service -f"
+echo "  Restart service: sudo systemctl restart alsa-relay-volume.service"
+echo ""
+
 if [ -f "$ASOUND_BACKUP" ]; then
     echo "Original ALSA config backed up to: $ASOUND_BACKUP"
+    echo ""
+fi
+
+# Suggest reboot if ALSA config was added
+if grep -q "# ALSA Relay Bridge Configuration" "$ASOUND_CONF" 2>/dev/null; then
+    echo "IMPORTANT: A system reboot is recommended for ALSA changes to take full effect:"
+    echo "  sudo reboot"
 fi
 
 exit 0
