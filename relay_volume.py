@@ -2,26 +2,45 @@
 import smbus
 import alsaaudio
 import time
+import argparse
 
 RELAY_ADDR = 0x21
 MIN_VOL = 0x00
 MAX_VOL = 0x3f
 AUDIO_CARD = 'BossDAC'
-AUDIO_CONTROL = 'Master'
+DEFAULT_INPUT_CONTROL = 'Analogue Playback Volume'
+DEFAULT_OUTPUT_CONTROL = 'Digital Playback Volume'
+
 
 class RelayVolume:
-    def __init__(self):
+    def __init__(self, input_control=None, output_control=None):
         self.bus = smbus.SMBus(1)
+        self.input_control = input_control or DEFAULT_INPUT_CONTROL
+        self.output_control = output_control or DEFAULT_OUTPUT_CONTROL
+        
         try:
             # Get card index for BossDAC
             cards = alsaaudio.cards()
             card_index = cards.index(AUDIO_CARD)
 
-            # Use 'Master' mixer which was added to BossDAC
-            self.mixer = alsaaudio.Mixer(control=AUDIO_CONTROL, cardindex=card_index)
-            print(f"Successfully initialized mixer: Master on card {card_index}")
+            # Input mixer: user-adjustable control for relay volume
+            self.input_mixer = alsaaudio.Mixer(
+                control=self.input_control,
+                cardindex=card_index
+            )
+            print(f"Input control: {self.input_control} on card {card_index}")
+            
+            # Output mixer: always kept at 100% for full digital output
+            self.output_mixer = alsaaudio.Mixer(
+                control=self.output_control,
+                cardindex=card_index
+            )
+            self.output_mixer.setvolume(100)
+            print(f"Output control: {self.output_control} set to 100%")
+            
         except Exception as e:
             print(f"Mixer initialization error: {e}")
+            print(f"Available cards: {alsaaudio.cards()}")
             raise Exception("Could not initialize audio mixer")
 
         self.vol = None
@@ -62,11 +81,19 @@ class RelayVolume:
 
         while True:
             try:
-                # Force a refresh of the ALSA mixer values
-                self.mixer.handleevents()
-                current_volume = self.mixer.getvolume()[0]
+                # Monitor input control for user volume changes
+                self.input_mixer.handleevents()
+                current_volume = self.input_mixer.getvolume()[0]
+                
+                # Ensure output control stays at 100%
+                output_volume = self.output_mixer.getvolume()[0]
+                if output_volume != 100:
+                    print(f"Output volume changed to {output_volume}%, "
+                          f"resetting to 100%")
+                    self.output_mixer.setvolume(100)
+                
                 try:
-                    current_mute = bool(self.mixer.getmute()[0])
+                    current_mute = bool(self.input_mixer.getmute()[0])
                 except alsaaudio.ALSAAudioError:
                     current_mute = False
 
@@ -82,5 +109,28 @@ class RelayVolume:
                 print(f"Error: {e}")
                 time.sleep(1)
 
+
 if __name__ == "__main__":
-    RelayVolume().run()
+    parser = argparse.ArgumentParser(
+        description='ALSA Relay Volume Bridge'
+    )
+    parser.add_argument(
+        '--input-control', '-i',
+        default=DEFAULT_INPUT_CONTROL,
+        help=f'Input control for relay (default: {DEFAULT_INPUT_CONTROL})'
+    )
+    parser.add_argument(
+        '--output-control', '-o',
+        default=DEFAULT_OUTPUT_CONTROL,
+        help=f'Output control kept at 100%% '
+             f'(default: {DEFAULT_OUTPUT_CONTROL})'
+    )
+    args = parser.parse_args()
+    
+    print(f"Starting ALSA Relay Volume Bridge")
+    print(f"  Input (variable): {args.input_control}")
+    print(f"  Output (100%%): {args.output_control}")
+    RelayVolume(
+        input_control=args.input_control,
+        output_control=args.output_control
+    ).run()
