@@ -93,8 +93,8 @@ You can also trigger the build manually from GitHub:
 Add these badges to your README:
 
 ```markdown
-![Build Status](https://github.com/yourusername/alsa-relay-bridge/workflows/Test%20and%20Validate/badge.svg)
-![Release](https://github.com/yourusername/alsa-relay-bridge/workflows/Build%20and%20Release/badge.svg)
+![Build Status](https://github.com/koyuch/alsa-relay-bridge/workflows/Test%20and%20Validate/badge.svg)
+![Release](https://github.com/koyuch/alsa-relay-bridge/workflows/Build%20and%20Release/badge.svg)
 ```
 
 ## Build Artifacts

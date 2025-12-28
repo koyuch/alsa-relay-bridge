@@ -4,11 +4,11 @@ This guide provides multiple installation methods for the ALSA Relay Bridge pack
 
 ## Quick Install from GitHub Releases
 
-Download the latest `.deb` package from the [Releases page](https://github.com/yourusername/alsa-relay-bridge/releases):
+Download the latest `.deb` package from the [Releases page](https://github.com/koyuch/alsa-relay-bridge/releases):
 
 ```bash
 # Download latest release (replace URL with actual release)
-wget https://github.com/yourusername/alsa-relay-bridge/releases/latest/download/alsa-relay-bridge_1.0.0_all.deb
+wget https://github.com/koyuch/alsa-relay-bridge/releases/latest/download/alsa-relay-bridge_1.0.0_all.deb
 
 # Install
 sudo apt install ./alsa-relay-bridge_1.0.0_all.deb

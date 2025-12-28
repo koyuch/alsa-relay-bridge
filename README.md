@@ -1,7 +1,7 @@
 # ALSA Relay Bridge
 
-[![Build Status](https://github.com/yourusername/alsa-relay-bridge/workflows/Test%20and%20Validate/badge.svg)](https://github.com/yourusername/alsa-relay-bridge/actions)
-[![Release](https://github.com/yourusername/alsa-relay-bridge/workflows/Build%20and%20Release/badge.svg)](https://github.com/yourusername/alsa-relay-bridge/releases)
+[![Build Status](https://github.com/koyuch/alsa-relay-bridge/workflows/Test%20and%20Validate/badge.svg)](https://github.com/koyuch/alsa-relay-bridge/actions)
+[![Release](https://github.com/koyuch/alsa-relay-bridge/workflows/Build%20and%20Release/badge.svg)](https://github.com/koyuch/alsa-relay-bridge/releases)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ALSA bridge daemon for Allo RelayAttenuator volume control. Monitors ALSA mixer events and translates volume changes to relay attenuator commands via I2C.
@@ -35,7 +35,7 @@ ALSA bridge daemon for Allo RelayAttenuator volume control. Monitors ALSA mixer 
 
 ```bash
 # Download latest release
-wget https://github.com/yourusername/alsa-relay-bridge/releases/latest/download/alsa-relay-bridge_1.0.0_all.deb
+wget https://github.com/koyuch/alsa-relay-bridge/releases/latest/download/alsa-relay-bridge_1.0.0_all.deb
 
 # Install
 sudo apt install ./alsa-relay-bridge_1.0.0_all.deb
@@ -45,7 +45,7 @@ sudo apt install ./alsa-relay-bridge_1.0.0_all.deb
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/alsa-relay-bridge.git
+git clone https://github.com/koyuch/alsa-relay-bridge.git
 cd alsa-relay-bridge
 
 # Build package
@@ -59,7 +59,7 @@ sudo apt install ../alsa-relay-bridge_*.deb
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/alsa-relay-bridge.git
+git clone https://github.com/koyuch/alsa-relay-bridge.git
 cd alsa-relay-bridge
 
 # Run installation script
@@ -245,8 +245,8 @@ Contributions are welcome! Please:
 
 ## Support
 
-- **Issues**: [GitHub Issues](https://github.com/yourusername/alsa-relay-bridge/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/alsa-relay-bridge/discussions)
+- **Issues**: [GitHub Issues](https://github.com/koyuch/alsa-relay-bridge/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/koyuch/alsa-relay-bridge/discussions)
 
 ---
 

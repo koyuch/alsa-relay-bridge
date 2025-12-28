@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: ALSA Relay Bridge Team <maintainer@example.com>
 Build-Depends: debhelper (>= 10), python3 (>= 3.9)
 Standards-Version: 4.5.0
-Homepage: https://github.com/yourusername/alsa-relay-bridge
+Homepage: https://github.com/koyuch/alsa-relay-bridge
 
 Package: alsa-relay-bridge
 Architecture: all
