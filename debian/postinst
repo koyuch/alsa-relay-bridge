@@ -85,8 +85,13 @@ configure_alsa() {
     fi
 }
 
+# Create symlink with expected name if needed
+if [ ! -e /usr/local/bin/relay-volume-daemon.py ]; then
+    ln -s /usr/local/bin/relay_volume.py /usr/local/bin/relay-volume-daemon.py
+fi
+
 # Set executable permissions
-chmod +x /usr/local/bin/relay-volume-daemon.py
+chmod +x /usr/local/bin/relay_volume.py
 
 # Hardware detection
 echo ""

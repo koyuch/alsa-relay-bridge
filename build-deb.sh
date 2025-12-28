@@ -4,8 +4,6 @@
 set -e
 
 PACKAGE_NAME="alsa-relay-bridge"
-BUILD_DIR="$(pwd)"
-
 echo "=== Building ${PACKAGE_NAME} Debian Package ==="
 echo ""
 
@@ -53,10 +51,8 @@ rm -f ../${PACKAGE_NAME}_*.deb ../${PACKAGE_NAME}_*.changes ../${PACKAGE_NAME}_*
 # Build the package
 echo ""
 echo "Building package..."
-dpkg-buildpackage -us -uc -b
-
-# Check if build was successful
-if [ $? -eq 0 ]; then
+# Build the package
+if dpkg-buildpackage -us -uc -b; then
     echo ""
     echo "=== Build Successful ==="
     echo ""

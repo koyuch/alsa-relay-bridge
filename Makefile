@@ -19,8 +19,8 @@ install:
 	install -d $(DESTDIR)$(SHAREDIR)
 	install -d $(DESTDIR)$(DOCDIR)
 	
-	# Install daemon script
-	install -m 755 relay_volume.py $(DESTDIR)$(BINDIR)/relay-volume-daemon.py
+	# Install daemon script (keep original name, will be renamed by postinst if needed)
+	install -m 755 relay_volume.py $(DESTDIR)$(BINDIR)/
 	
 	# Install systemd service
 	install -m 644 alsa-relay-volume.service $(DESTDIR)$(SYSTEMDDIR)/
@@ -29,7 +29,8 @@ install:
 	install -m 644 asound.conf $(DESTDIR)$(SHAREDIR)/
 	
 	# Install documentation
-	install -m 644 readme.md $(DESTDIR)$(DOCDIR)/
+	install -m 644 README.md $(DESTDIR)$(DOCDIR)/
+	install -m 644 INSTALL.md $(DESTDIR)$(DOCDIR)/
 
 clean:
 	@echo "Nothing to clean."

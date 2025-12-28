@@ -5,8 +5,11 @@
 
 override_dh_auto_install:
 	dh_auto_install
+
+override_dh_fixperms:
+	dh_fixperms
 	# Ensure executable permission for the daemon
-	chmod +x debian/alsa-relay-bridge/usr/local/bin/relay-volume-daemon.py
+	chmod +x debian/alsa-relay-bridge/usr/local/bin/relay_volume.py
 
 override_dh_installinit:
 	# Skip traditional init script handling, we use systemd
