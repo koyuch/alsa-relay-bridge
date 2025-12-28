@@ -1,0 +1,18 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+override_dh_auto_install:
+	dh_auto_install
+	# Ensure executable permission for the daemon
+	chmod +x debian/alsa-relay-bridge/usr/local/bin/relay-volume-daemon.py
+
+override_dh_installinit:
+	# Skip traditional init script handling, we use systemd
+
+override_dh_systemd_enable:
+	# Handled in postinst script
+
+override_dh_systemd_start:
+	# Handled in postinst script

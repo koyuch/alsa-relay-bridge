@@ -1,0 +1,98 @@
+name: Test and Validate
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  test-build:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11', '3.12', '3.13']
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+        
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y python3-smbus python3-alsaaudio i2c-tools
+        
+    - name: Install Python dependencies
+      run: |
+        pip install -r requirements.txt || true
+        pip install flake8 mypy
+        
+    - name: Lint with flake8
+      run: |
+        # Stop the build if there are Python syntax errors or undefined names
+        flake8 relay_volume.py --count --select=E9,F63,F7,F82 --show-source --statistics
+        # Exit-zero treats all errors as warnings
+        flake8 relay_volume.py --count --exit-zero --max-complexity=10 --max-line-length=100 --statistics
+        
+    - name: Type check with mypy
+      run: |
+        mypy relay_volume.py --ignore-missing-imports || true
+        
+    - name: Syntax check Python script
+      run: |
+        python3 -m py_compile relay_volume.py
+        
+  test-package-build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y debhelper dpkg-dev build-essential lintian
+        
+    - name: Set executable permissions
+      run: |
+        chmod +x build-deb.sh install.sh uninstall.sh
+        chmod +x debian/postinst debian/prerm debian/postrm debian/rules
+        chmod +x relay_volume.py
+        
+    - name: Test package build
+      run: |
+        dpkg-buildpackage -us -uc -b
+        
+    - name: Run lintian on package
+      run: |
+        lintian ../*.deb || true
+        
+    - name: List built files
+      run: |
+        ls -lh ../*.deb
+        dpkg-deb --info ../*.deb
+        dpkg-deb --contents ../*.deb
+        
+  shellcheck:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Install shellcheck
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y shellcheck
+        
+    - name: Check shell scripts
+      run: |
+        shellcheck build-deb.sh install.sh uninstall.sh
+        shellcheck debian/postinst debian/prerm debian/postrm

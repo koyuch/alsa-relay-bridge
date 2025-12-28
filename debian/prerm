@@ -1,0 +1,21 @@
+#!/bin/bash
+set -e
+
+echo "=== ALSA Relay Bridge Pre-Removal ==="
+
+# Stop and disable service
+if systemctl is-active --quiet alsa-relay-volume.service; then
+    echo "Stopping alsa-relay-volume service..."
+    systemctl stop alsa-relay-volume.service || true
+    echo "✓ Service stopped"
+fi
+
+if systemctl is-enabled --quiet alsa-relay-volume.service 2>/dev/null; then
+    echo "Disabling alsa-relay-volume service..."
+    systemctl disable alsa-relay-volume.service || true
+    echo "✓ Service disabled"
+fi
+
+echo "=== Pre-Removal Complete ==="
+
+exit 0

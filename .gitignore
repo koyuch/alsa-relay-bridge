@@ -1,4 +1,37 @@
-.idea
-*.iml
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
 
-.venv
+# Debian package build artifacts
+debian/alsa-relay-bridge/
+debian/.debhelper/
+debian/files
+debian/debhelper-build-stamp
+debian/*.substvars
+debian/*.log
+*.deb
+*.changes
+*.buildinfo
+*.dsc
+*.tar.gz
+*.tar.xz
+
+# Backup files
+*.backup
+*.backup-*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# MyPy
+.mypy_cache/

@@ -1,0 +1,38 @@
+#!/bin/bash
+set -e
+
+ASOUND_CONF="/etc/asound.conf"
+
+case "$1" in
+    purge)
+        echo "=== ALSA Relay Bridge Purge ==="
+        
+        # Reload systemd after service file removal
+        systemctl daemon-reload || true
+        
+        # Optionally remove ALSA configuration
+        if [ -f "$ASOUND_CONF" ]; then
+            if grep -q "# ALSA Relay Bridge Configuration" "$ASOUND_CONF" 2>/dev/null; then
+                echo ""
+                echo "WARNING: ALSA configuration in $ASOUND_CONF was modified by this package."
+                echo "Manual cleanup may be required if you want to remove the configuration."
+                echo "Look for '# ALSA Relay Bridge Configuration' section in $ASOUND_CONF"
+                echo ""
+            fi
+        fi
+        
+        echo "=== Purge Complete ==="
+        ;;
+        
+    remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+        # Reload systemd daemon
+        systemctl daemon-reload || true
+        ;;
+        
+    *)
+        echo "postrm called with unknown argument \`$1'" >&2
+        exit 1
+        ;;
+esac
+
+exit 0

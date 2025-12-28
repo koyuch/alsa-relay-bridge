@@ -1,0 +1,23 @@
+Source: alsa-relay-bridge
+Section: sound
+Priority: optional
+Maintainer: ALSA Relay Bridge Team <maintainer@example.com>
+Build-Depends: debhelper (>= 10), python3 (>= 3.9)
+Standards-Version: 4.5.0
+Homepage: https://github.com/yourusername/alsa-relay-bridge
+
+Package: alsa-relay-bridge
+Architecture: all
+Depends: ${misc:Depends}, python3 (>= 3.9), python3-smbus, python3-alsaaudio, i2c-tools
+Recommends: alsa-utils
+Description: ALSA bridge for Allo RelayAttenuator volume control
+ This package provides a daemon that bridges ALSA volume controls
+ to the Allo RelayAttenuator hardware via I2C communication.
+ .
+ Hardware Requirements:
+  - Allo BossDAC
+  - Allo Relay Attenuator
+  - Raspberry Pi with I2C enabled
+ .
+ The daemon monitors ALSA mixer events and translates volume changes
+ to relay attenuator commands, providing hardware-level volume control.

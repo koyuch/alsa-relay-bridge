@@ -1,0 +1,4 @@
+relay_volume.py usr/local/bin/relay-volume-daemon.py
+alsa-relay-volume.service lib/systemd/system/
+asound.conf usr/share/alsa-relay-bridge/
+readme.md usr/share/doc/alsa-relay-bridge/

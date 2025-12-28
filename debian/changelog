@@ -1,0 +1,10 @@
+alsa-relay-bridge (1.0.0) stable; urgency=medium
+
+  * Initial release
+  * ALSA bridge daemon for Allo RelayAttenuator
+  * Automatic hardware detection
+  * Graceful ALSA configuration handling
+  * Systemd service integration
+  * Support for Raspberry Pi OS 11+
+
+ -- ALSA Relay Bridge Team <maintainer@example.com>  Sat, 28 Dec 2024 17:00:00 +0100

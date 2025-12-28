@@ -1,0 +1,138 @@
+#!/bin/bash
+set -e
+
+ASOUND_CONF="/etc/asound.conf"
+ASOUND_BACKUP="/etc/asound.conf.backup-$(date +%Y%m%d-%H%M%S)"
+ASOUND_SOURCE="/usr/share/alsa-relay-bridge/asound.conf"
+RELAY_ADDR="0x21"
+
+echo "=== ALSA Relay Bridge Post-Installation ==="
+
+# Function to check if I2C is enabled
+check_i2c() {
+    if [ ! -e /dev/i2c-1 ]; then
+        echo "WARNING: I2C interface /dev/i2c-1 not found!"
+        echo "Please enable I2C using 'sudo raspi-config' -> Interface Options -> I2C"
+        return 1
+    fi
+    echo "✓ I2C interface detected"
+    return 0
+}
+
+# Function to detect Allo RelayAttenuator hardware
+check_relay_hardware() {
+    if command -v i2cdetect >/dev/null 2>&1; then
+        echo "Checking for Allo RelayAttenuator at address ${RELAY_ADDR}..."
+        if i2cdetect -y 1 | grep -q "21"; then
+            echo "✓ Allo RelayAttenuator detected at address ${RELAY_ADDR}"
+            return 0
+        else
+            echo "WARNING: Allo RelayAttenuator not detected at address ${RELAY_ADDR}"
+            echo "Please verify hardware connection and I2C configuration"
+            return 1
+        fi
+    else
+        echo "WARNING: i2cdetect not available, skipping hardware detection"
+        return 1
+    fi
+}
+
+# Function to check for BossDAC
+check_bossdac() {
+    if command -v aplay >/dev/null 2>&1; then
+        if aplay -l | grep -q "BossDAC"; then
+            echo "✓ Allo BossDAC detected"
+            return 0
+        else
+            echo "WARNING: Allo BossDAC not detected in ALSA devices"
+            echo "Please verify BossDAC is properly configured"
+            return 1
+        fi
+    else
+        echo "WARNING: aplay not available, skipping BossDAC detection"
+        return 1
+    fi
+}
+
+# Function to handle ALSA configuration
+configure_alsa() {
+    local needs_config=true
+    
+    # Check if configuration already exists
+    if [ -f "$ASOUND_CONF" ]; then
+        if grep -q "# ALSA Relay Bridge Configuration" "$ASOUND_CONF" 2>/dev/null; then
+            echo "✓ ALSA configuration already present in $ASOUND_CONF"
+            needs_config=false
+        elif grep -q "pcm.boss" "$ASOUND_CONF" 2>/dev/null; then
+            echo "✓ Similar ALSA configuration detected, skipping"
+            needs_config=false
+        else
+            # Backup existing configuration
+            echo "Backing up existing $ASOUND_CONF to $ASOUND_BACKUP"
+            cp "$ASOUND_CONF" "$ASOUND_BACKUP"
+        fi
+    fi
+    
+    if [ "$needs_config" = true ]; then
+        echo "Appending ALSA configuration to $ASOUND_CONF..."
+        {
+            echo ""
+            echo "# ALSA Relay Bridge Configuration"
+            echo "# Added by alsa-relay-bridge package on $(date)"
+            cat "$ASOUND_SOURCE"
+        } >> "$ASOUND_CONF"
+        echo "✓ ALSA configuration added"
+    fi
+}
+
+# Set executable permissions
+chmod +x /usr/local/bin/relay-volume-daemon.py
+
+# Hardware detection
+echo ""
+echo "Hardware Detection:"
+check_i2c
+check_relay_hardware
+check_bossdac
+
+# Configure ALSA
+echo ""
+echo "ALSA Configuration:"
+configure_alsa
+
+# Reload systemd daemon
+echo ""
+echo "Configuring systemd service..."
+systemctl daemon-reload
+
+# Enable and start service
+if systemctl enable alsa-relay-volume.service; then
+    echo "✓ Service enabled"
+else
+    echo "ERROR: Failed to enable service"
+    exit 1
+fi
+
+if systemctl start alsa-relay-volume.service; then
+    echo "✓ Service started"
+else
+    echo "WARNING: Service failed to start"
+    echo "Check logs with: journalctl -u alsa-relay-volume.service -n 50"
+fi
+
+# Show service status
+echo ""
+echo "Service Status:"
+systemctl status alsa-relay-volume.service --no-pager || true
+
+echo ""
+echo "=== Installation Complete ==="
+echo ""
+echo "To check service status: systemctl status alsa-relay-volume.service"
+echo "To view logs: journalctl -u alsa-relay-volume.service -f"
+echo ""
+if [ -f "$ASOUND_BACKUP" ]; then
+    echo "Original ALSA config backed up to: $ASOUND_BACKUP"
+fi
+
+exit 0
