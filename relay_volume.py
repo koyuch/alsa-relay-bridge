@@ -8,8 +8,8 @@ RELAY_ADDR = 0x21
 MIN_VOL = 0x00
 MAX_VOL = 0x3f
 AUDIO_CARD = 'BossDAC'
-DEFAULT_INPUT_CONTROL = 'Analogue Playback Volume'
-DEFAULT_OUTPUT_CONTROL = 'Digital Playback Volume'
+DEFAULT_INPUT_CONTROL = 'Master'
+DEFAULT_OUTPUT_CONTROL = 'Digital'
 
 
 class RelayVolume:
@@ -23,14 +23,15 @@ class RelayVolume:
             cards = alsaaudio.cards()
             card_index = cards.index(AUDIO_CARD)
 
-            # Input mixer: user-adjustable control for relay volume
+            # Input mixer: Master softvol control (user-adjustable)
             self.input_mixer = alsaaudio.Mixer(
                 control=self.input_control,
                 cardindex=card_index
             )
-            print(f"Input control: {self.input_control} on card {card_index}")
+            print(f"Input control: {self.input_control} "
+                  f"on card {card_index}")
             
-            # Output mixer: always kept at 100% for full digital output
+            # Output mixer: Digital control (kept at 100%)
             self.output_mixer = alsaaudio.Mixer(
                 control=self.output_control,
                 cardindex=card_index
@@ -41,6 +42,13 @@ class RelayVolume:
         except Exception as e:
             print(f"Mixer initialization error: {e}")
             print(f"Available cards: {alsaaudio.cards()}")
+            try:
+                # List available controls for debugging
+                print(f"Available controls on {AUDIO_CARD}:")
+                for ctrl in alsaaudio.mixers(cardindex=card_index):
+                    print(f"  - {ctrl}")
+            except Exception:
+                pass
             raise Exception("Could not initialize audio mixer")
 
         self.vol = None
@@ -78,14 +86,15 @@ class RelayVolume:
     def run(self):
         last_volume = None
         last_mute = None
+        print("Starting volume monitoring loop...")
 
         while True:
             try:
-                # Monitor input control for user volume changes
+                # Monitor input control (Master) for user volume changes
                 self.input_mixer.handleevents()
                 current_volume = self.input_mixer.getvolume()[0]
                 
-                # Ensure output control stays at 100%
+                # Ensure output control (Digital) stays at 100%
                 output_volume = self.output_mixer.getvolume()[0]
                 if output_volume != 100:
                     print(f"Output volume changed to {output_volume}%, "
@@ -100,6 +109,7 @@ class RelayVolume:
                 if current_mute != last_mute:
                     self.set_mute(current_mute)
                     last_mute = current_mute
+                    
                 if current_volume != last_volume and not current_mute:
                     self.set_volume(current_volume)
                     last_volume = current_volume
@@ -112,12 +122,14 @@ class RelayVolume:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description='ALSA Relay Volume Bridge'
+        description='ALSA Relay Volume Bridge - monitors Master control '
+                    'and sends changes to relay attenuator'
     )
     parser.add_argument(
         '--input-control', '-i',
         default=DEFAULT_INPUT_CONTROL,
-        help=f'Input control for relay (default: {DEFAULT_INPUT_CONTROL})'
+        help=f'Input control for relay '
+             f'(default: {DEFAULT_INPUT_CONTROL})'
     )
     parser.add_argument(
         '--output-control', '-o',
@@ -127,9 +139,11 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
     
-    print(f"Starting ALSA Relay Volume Bridge")
-    print(f"  Input (variable): {args.input_control}")
-    print(f"  Output (100%%): {args.output_control}")
+    print("=" * 60)
+    print("ALSA Relay Volume Bridge")
+    print(f"Input (variable): {args.input_control}")
+    print(f"Output (100%%): {args.output_control}")
+    print("=" * 60)
     RelayVolume(
         input_control=args.input_control,
         output_control=args.output_control

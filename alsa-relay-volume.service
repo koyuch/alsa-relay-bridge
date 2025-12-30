@@ -4,7 +4,7 @@ After=sound.target
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/relay_volume.py --input-control "Analogue Playback Volume" --output-control "Digital Playback Volume"
+ExecStart=/usr/local/bin/relay_volume.py --input-control "Master" --output-control "Digital"
 Restart=always
 
 [Install]
